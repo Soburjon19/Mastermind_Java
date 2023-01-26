@@ -4,13 +4,39 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
 
+class MastermindAlgorithm {
+    private String guestCode;
+    private String randomCode;
+    public static  final String WHITE = "\u001B[37m";
+    public static  final String GREEN = "\u001B[32m";
+    public static  final String YELLOW = "\u001B[33m";
+    public static  final String BLUE = "\u001B[34m";
+    public static  final String PURPLE = "\u001B[35m";
+    public static  final String CYAN = "\u001B[36m";
+    public MastermindAlgorithm(String randomCode, String guestCode) {
+        this.guestCode = guestCode;
+        this.randomCode = randomCode;
+    }
 
-public class My_Mastermind {
+    public void wellPiecesAlgo() {
+        int wp = 0;
+        for(int i=0; i < this.randomCode.length(); i++) {
+            if(this.randomCode.charAt(i) == this.guestCode.charAt(i))
+                wp++;
+        }
+        System.out.printf(CYAN + "--- Well placed pieces: %d ---\n", wp);
+    }
+    public void misPiecesAlgo() {
+        int mp = 0;
+        for(int i=0; i < this.randomCode.length(); i++) {
+            if(this.randomCode.contains("" + this.guestCode.charAt(i)) && this.randomCode.charAt(i) != this.guestCode.charAt(i))
+                mp++;
+        }
+        System.out.printf(BLUE + "---- Misplaced pieces: %d ----\n", mp);
+    }
+}
 
-    public static String secretCode;
-    public static String inputCode;
-    public static int rounds;
-
+class GameFunctions {
     static String getSecretCode() {
         String code = "";
         while(code.length() < 4) {
@@ -20,24 +46,6 @@ public class My_Mastermind {
             }
         }
         return code;
-    }
-    
-    static void missPlaced(String code, String input) { 
-        int mp = 0;
-        for(int i=0; i < code.length(); i++) {
-            if(code.contains("" + input.charAt(i)) && code.charAt(i) != input.charAt(i))
-                mp++;
-        }
-        System.out.printf("Misplaced pieces: %d\n", mp);
-    }
-
-    static void wellPlaced(String code, String input) {
-        int wp = 0;
-        for(int i=0; i < code.length(); i++) {
-            if(code.charAt(i) == input.charAt(i))
-                    wp++;
-        }
-        System.out.printf("Well placed pieces: %d\n", wp);
     }
 
     static boolean isDuplicated(char arg[]) {
@@ -64,78 +72,130 @@ public class My_Mastermind {
                 return true;
 	        }
         }
-	return false;
+	    return false;
     }
 
-    public static void setOptions(String[] args) {
-        if (args.length > 1 ){
+}
+
+class GameController {
+    public static  final String YELLOW = "\u001B[33m";
+    public static  final String RED = "\u001B[31m";
+    private String[] args;
+    private String secretCode;
+    private int rounds;
+
+    public GameController(String[] args) {
+        this.args = args;
+    }
+
+    public String getSecretCode() {
+        return this.secretCode;
+    }
+
+    public int getRounds() {
+        return this.rounds;
+    }
+
+    public void initialize() {
+        if (this.args.length > 1){
             ArrayList<String> option_list = new ArrayList<String>();
-            option_list.addAll(Arrays.asList(args));
+            option_list.addAll(Arrays.asList(this.args));
             Iterator<String> itr = null;
             itr = option_list.listIterator();    
             while (itr.hasNext()) { 
                 String option = itr.next();
                 if (option.equals("-t")) {
                     try {
-                        rounds = Integer.parseInt(itr.next());
-                        if(rounds < 0 && -16 < rounds) {
-                            rounds *= -1;
-                            System.out.printf("Rounds number set: %d (not -%d)\n",rounds, rounds);
-                        } else if(rounds > 16 || rounds < 1){
-                                System.out.println("Rounds cannot be more then 15 or less then 1 (15≥rounds≥1)");
-                                rounds = 10;
+                        this.rounds = Integer.parseInt(itr.next());
+                        if(this.rounds < 0 && -15 < this.rounds) {
+                            this.rounds *= -1;
+                            System.out.printf(YELLOW + "Rounds number set: %d (not -%d)\n", this.rounds, this.rounds);
+                        } else if(this.rounds > 15 || this.rounds < 1){
+                                System.out.println(RED + "Rounds cannot be more then 15 or less then 1 (15 ≥ rounds ≥ 1)");
+                                this.rounds = 10;
                         }
                     } catch (Exception e) {
-                        System.out.println("You should type number of rounds! (-t)\n");
+                        System.out.println(YELLOW + "You should type number of rounds! (-t)\n");
                     };
                 }
                 
                 if (option.equals("-c")) {
                     String code = itr.next();
-                    if(wrongInput(code)) {
-                        System.out.printf("Error in setting secret code: ( -c %s )\n" +
+                    if(GameFunctions.wrongInput(code)) {
+                        System.out.printf(RED + "Error in setting secret code: ( -c %s )\n" +
                             "Secret code set automatic by 'generator'\n", code);
-                        secretCode = getSecretCode();
+                        this.secretCode = GameFunctions.getSecretCode();
                     } else {
-                        secretCode = code;
+                        this.secretCode = code;
                     }
                 }
             }
         }
-        if (secretCode == null) {
-            secretCode = getSecretCode();
+        if (this.secretCode == null) {
+            this.secretCode = GameFunctions.getSecretCode();
         }
-        if (rounds == 0) {
-            rounds = 10;
+        if (this.rounds == 0) {
+            this.rounds = 10;
         }
     }
 
-    public static void run() {
+
+}
+
+class GameLoop {
+    public static  final String YELLOW = "\u001B[33m";
+    public static  final String RED = "\u001B[31m";
+    public static  final String GREEN = "\u001B[32m";
+    public static  final String WHITE = "\u001B[37m";
+    public static  final String PURPLE = "\u001B[35m";
+    private int rounds;
+    private String secretCode;
+    private MastermindAlgorithm mastermindAlgorithm;
+
+    public GameLoop(int rounds, String secretCode) {
+        this.rounds = rounds;
+        this.secretCode = secretCode;
+    }
+
+    public void run() {
         int round = 1;
-        System.out.println("Will you find the secret code?");
+        String inputCode;
+        System.out.println(GREEN + "Will you find the secret code?");
         Scanner input = new Scanner(System.in);
         while (round <= rounds) {
-            System.out.printf("---\nRound %d/%d\n>", round, rounds);
+            System.out.printf(YELLOW + "-------🏁  Round %d/%d 🏁 -------\n" + PURPLE + "            ", round, rounds);
             inputCode = input.nextLine();
-            if(wrongInput(inputCode)) {
-                System.out.println("Wrong input!");
+            this.mastermindAlgorithm = new MastermindAlgorithm(
+                this.secretCode,
+                inputCode
+            );
+            if(GameFunctions.wrongInput(inputCode)) {
+                System.out.println(RED + "Wrong input!");
                 continue;
             } else if (secretCode.equals(inputCode)) {
-                System.out.println("Congrats! You did it!");
+                System.out.println(GREEN + "Congrats! You did it!🥳  🥳  🥳");
                 break;
             } else {
-                wellPlaced(secretCode, inputCode);
-                missPlaced(secretCode, inputCode);
+                mastermindAlgorithm.wellPiecesAlgo();
+                mastermindAlgorithm.misPiecesAlgo();
             }
-            if (round == rounds)
-                System.out.printf("Game Over\n"+"Secret code: %s\n", secretCode);
+            if (round == this.rounds)
+                System.out.printf(RED + "-------❌  Game Over ❌ -------\n"+ GREEN +"----- Secret code: %s -----\n", this.secretCode);
             round++;
-            
         }
-        
     }
+}
+
+
+public class My_Mastermind {
+
     public static void main(String[] args) {
-        setOptions(args);
-        run();
+        GameController gameController = new GameController(args);
+        gameController.initialize();
+        GameLoop gameLoop = new GameLoop(
+            gameController.getRounds(),
+            gameController.getSecretCode()
+        );
+        gameLoop.run();
     }
 }
